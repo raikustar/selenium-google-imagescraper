@@ -2,7 +2,8 @@ py -m virtualenv venv
 
 py -m pip install -r requirements.txt
 
-Download chromedriver, unzip it and add it to chromedriver folder(Latest version).
+1. Needs Google Chrome
+2. Download chromedriver, unzip it and add it to chromedriver folder(Latest version).
 
 
 - /chromedriver/     
