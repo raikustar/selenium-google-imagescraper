@@ -4,7 +4,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-from urllib.request import urlretrieve
 import requests
 from requests.exceptions import ReadTimeout
 import time
@@ -16,6 +15,7 @@ Google image scraper
 """
 
 def checkForDirectory(dictionary):
+    print(">>> Preparing directory for download.")
     folder_name = "images"        
     if os.path.exists(folder_name):
         print(f"{folder_name}/ already exists.")
@@ -71,7 +71,6 @@ def scrapeFromGoogleImages(searchtags, number):
         else:
             pass
         
-        print(">>> Collecting urls.")
         dictionary = findElementCount(driver=driver, number=number)
         all_links[item] = dictionary
     driver.close()
@@ -110,6 +109,7 @@ def findElementCount(driver, number):
     return links
 
 def collectLinks(driver, thumbnails, number):
+    print(">>> Collecting links.")
     links = []
     for t in range(number):
         thumbnails[t].click()
@@ -118,54 +118,59 @@ def collectLinks(driver, thumbnails, number):
         try:
             url = found_element.get_attribute("src")
             if found_element and "encrypted" not in url:
-                links.append(url)
-                print(f">>> Collected {len(links)} links.", end="\r")
+                checkResponse(url=url, links=links)
             elif found_element and "encrypted" in url:
                 pass
             else:
-                print("Didn't get url.")
+                print(">>> Failed to gather link from google.")
                 pass
         except Exception as e:
             print(e)
-    print(" ")
     return links
 
-def downloadImages(dictionary, searchtags):
-    time.sleep(1)
-    for tag in searchtags:
-        if tag in dictionary:
-            for idx, link in enumerate(dictionary[tag]):
-                try:
-                    req = requests.get(link, timeout=0.5)
-                    if req.status_code in {200,202}:
-                        print(f">>>     Downloading image of {tag}: {idx+1}.")  
-                        urlretrieve(link, f"images/{tag}/{tag}_{idx+1}.jpg")    
-                    else:
-                        print(f">>> Skipping image number {idx+1}. Response code not 200 or 202.")
-                except ReadTimeout:
-                    print(">>> Request timeout, moving to next item.")
-                except requests.HTTPError as e:
-                    print(f">>> HTTP Error occured when downloading image. {e}")
-                except Exception as e:
-                    print(f">>> An error occured. {e}")
+def checkResponse(url, links):
+    try:
+        req = requests.get(url, timeout=0.4)
+        if req.status_code in {200,202}:
+            links.append(req.content)
         else:
-            print(">>> No links were found.")
+            print(">>> Response code not 200 or 202, skipped a link.")
+            pass
+
+    except ReadTimeout as e:
+        print(e)
+    except requests.HTTPError as e:
+        print(f">>> HTTP Error occured when downloading image. {e}")
+    except Exception as e:
+        print(f">>> An error occured. {e}")
+
+def downloadImages(dictionary, searchtag):
+    print(">>> Downloading images.")
+    time.sleep(1)
+    for tag in searchtag:
+       for idx, binary in enumerate(dictionary[tag]):
+            try:
+                print(f">>> Downloading {tag}{idx+1}.jpg")
+                os.makedirs(f"images/{tag}", exist_ok=True)
+                with open(f"images/{tag}/{tag}{idx+1}.jpg", "wb") as f:
+                    f.write(binary)
+            except requests.HTTPError as e:
+                print(f">>> HTTP Error occured when downloading image. {e}")
+            except Exception as e:
+                print(e)
 
 
 def main():
     # Search tag
-    searchtag = ["akita inu"]
+    searchtag = ["dog", "cat"]
     # Number of images to search for
-    num_images = 20
-
+    num_images = 30
     ###########################
+
+
     dictionary = scrapeFromGoogleImages(searchtags=searchtag, number=num_images)
-
-    print(">>> Checking directory path.")
     checkForDirectory(dictionary=dictionary)
-
-    print(">>> Downloading images.")
-    downloadImages(dictionary=dictionary, searchtags=searchtag)
+    downloadImages(dictionary=dictionary, searchtag=searchtag)
 
     print(">>> Finished downloading images.")
 
@@ -173,5 +178,4 @@ if __name__ == "__main__":
     main()
 
 
-# Region change for chromedriver????
 
