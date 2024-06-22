@@ -14,6 +14,8 @@ Google image scraper
 
 """
 
+
+
 def checkForDirectory(dictionary):
     print(">>> Preparing directory for download.")
     folder_name = "images"        
@@ -83,7 +85,7 @@ def findElementCount(driver, number):
     try:
         while len(reload_elements) <= int(number):    
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
-            time.sleep(1)
+            time.sleep(0.5)
             reload_elements = WebDriverWait(driver=driver, timeout=10).until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="F0uyec"]')))
             new_height = driver.execute_script("return document.body.scrollHeight")
             if len(reload_elements) == int(number):
@@ -111,10 +113,11 @@ def findElementCount(driver, number):
 def collectLinks(driver, thumbnails, number):
     print(">>> Collecting links.")
     links = []
+    
     for t in range(number):
         thumbnails[t].click()
         time.sleep(0.6)
-        found_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#Sva75c > div.A8mJGd.NDuZHe.OGftbe-N7Eqid-H9tDt > div.LrPjRb > div.AQyBn > div.tvh9oe.BIB1wf > c-wiz > div > div > div > div > div.v6bUne > div.p7sI2.PUxBg > a > img.sFlh5c.pT0Scc")))
+        found_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/div[3]/div[1]/a/img')))
         try:
             url = found_element.get_attribute("src")
             if found_element and "encrypted" not in url:
@@ -122,7 +125,7 @@ def collectLinks(driver, thumbnails, number):
             elif found_element and "encrypted" in url:
                 pass
             else:
-                print(">>> Failed to gather link from google.")
+                print(">>> Failed to gather link from google images.")
                 pass
         except Exception as e:
             print(e)
@@ -162,9 +165,9 @@ def downloadImages(dictionary, searchtag):
 
 def main():
     # Search tag
-    searchtag = ["dog", "cat"]
+    searchtag = ["russian tank in the winter", "russian tank in the summer", "russian tank in the autumn", "russian tank in the spring"]
     # Number of images to search for
-    num_images = 30
+    num_images = 10
     ###########################
 
 
