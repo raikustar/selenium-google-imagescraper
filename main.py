@@ -165,7 +165,7 @@ def downloadImages(dictionary, searchtag):
 
 def main():
     # Search tag
-    searchtag = ["russian tank in the winter", "russian tank in the summer", "russian tank in the autumn", "russian tank in the spring"]
+    searchtag = ["cat", "dog"]
     # Number of images to search for
     num_images = 10
     ###########################
